@@ -7,6 +7,7 @@ import Login from "./src/screens/login";
 import Home from "./src/screens/home";
 import Create from "./src/screens/create";
 import Form from "./src/screens/create/form";
+import Print from "./src/screens/print";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,11 @@ function App() {
             options={optionsScreens}
           />
           <Stack.Screen name="Form" component={Form} options={optionsScreens} />
+          <Stack.Screen
+            name="Print"
+            component={Print}
+            options={optionsScreens}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

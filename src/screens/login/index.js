@@ -2,10 +2,16 @@ import React, { useState } from "react";
 import { StyleSheet, View, Image } from "react-native";
 import { Button, Text, Input, LinearProgress } from "@rneui/themed";
 import { Icon } from "react-native-elements";
+import { saveData } from "../../utils";
 
 const Index = ({ navigation }) => {
   const [user, setuser] = useState(null);
   const [password, setpassword] = useState(null);
+
+  const login = () => {
+    saveData("user", "1");
+    navigation.navigate("Home");
+  };
 
   return (
     <View style={styles.main}>
@@ -52,7 +58,7 @@ const Index = ({ navigation }) => {
               borderRadius: 100,
             }}
             /*   disabled={password && user ? false : true} */
-            onPress={() => navigation.navigate("Home")}
+            onPress={() => login()}
           />
         </View>
       </View>

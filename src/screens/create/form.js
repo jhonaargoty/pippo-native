@@ -1,8 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from "react-native";
-import { Text, Divider, Input, Card, Button } from "@rneui/themed";
+import { Text, Divider, Input, Card, Button, Overlay } from "@rneui/themed";
 import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
+import axios from "axios";
+
+import { listRoutes } from "../../utils/data";
+
+import { saveData, getData } from "../../utils";
+
+import NetInfo from "@react-native-community/netinfo";
 
 import moment from "moment";
 import "moment/locale/es";
@@ -20,6 +27,81 @@ const Index = ({ navigation, route }) => {
   const [observaciones, setObservaciones] = useState(null);
   const [compartimento, setCompartimento] = useState(null);
 
+  const baseUrl = "https://pippo-test.000webhostapp.com/api/";
+
+  const [dialogMessage, setDialogMessage] = useState(false);
+
+  const [routeSelected, setRouteSelected] = useState();
+  const [formCache, setFormCache] = useState();
+
+  async function fetchData() {
+    const rutaData = await getData("ruta");
+    const formCache = await getData("form");
+    setRouteSelected(rutaData);
+    setFormCache(formCache);
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const [isConnected, setIsConnected] = useState(true);
+
+  const verifyConnection = () => {
+    NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected);
+    });
+  };
+
+  useEffect(() => {
+    verifyConnection();
+  }, []);
+
+  const onSave = async () => {
+    const item = {
+      litros,
+      cantinas,
+      temperatura,
+      observaciones,
+      compartimento,
+      fecha: moment().format("YYYY-MM-DD HH:mm:ss"),
+      ganadero: data.id,
+      conductor: 1,
+      ruta: routeSelected,
+    };
+
+    const url = `${baseUrl}/registro/addRegistro.php`;
+
+    if (!isConnected) {
+      try {
+        setDialogMessage(true);
+        const response = await axios.post(url, { item: item });
+        console.log(response.data);
+      } catch (error) {
+        setDialogMessage(true);
+        console.error("Error:", error);
+        console.error("Response data:", error.response.data);
+      }
+    } else {
+      if (formCache) {
+        const oldData = JSON.parse(formCache);
+
+        const save = await saveData(
+          "form",
+          JSON.stringify({
+            ...oldData,
+            ["item-" + (Object.keys(oldData).length + 1)]: item,
+          })
+        );
+
+        save === "SUCCESS" && setDialogMessage(true);
+      } else {
+        const save = await saveData("form", JSON.stringify({ "item-1": item }));
+        save === "SUCCESS" && setDialogMessage(true);
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={10}>
@@ -35,7 +117,9 @@ const Index = ({ navigation, route }) => {
             <View style={styles.info_main}>
               <View style={styles.info}>
                 <Icon name="local-shipping" color="#c90000" />
-                <Text h3>Ruta Porvenir</Text>
+                <Text h3>{`Ruta: ${
+                  listRoutes.find((item) => item.id === routeSelected)?.name
+                }`}</Text>
               </View>
               <Text h5 style={styles.date}>
                 {formattedDateTime}
@@ -43,6 +127,7 @@ const Index = ({ navigation, route }) => {
             </View>
             <Divider />
           </View>
+
           <View style={styles.info_ganadero}>
             <Text h4>{data.name}</Text>
             <Text h5>Nit: {data.id}</Text>
@@ -126,6 +211,29 @@ const Index = ({ navigation, route }) => {
               />
             </View>
           </Card>
+          <Overlay isVisible={dialogMessage} overlayStyle={styles.dialog}>
+            <View style={styles.dialog_content}>
+              <Icon name="check-circle" size={40} color={"green"} />
+              <Text h4>Registro guardado</Text>
+
+              <View style={styles.buttons}>
+                <Button
+                  title={"Imprimir"}
+                  buttonStyle={{ borderRadius: 20, paddingHorizontal: 30 }}
+                  onPress={() => navigation.navigate("Print")}
+                />
+                <Button
+                  title={"Salir"}
+                  buttonStyle={{
+                    backgroundColor: "rgba(214, 61, 57, 1)",
+                    borderRadius: 20,
+                    paddingHorizontal: 30,
+                  }}
+                  onPress={() => navigation.navigate("Home")}
+                />
+              </View>
+            </View>
+          </Overlay>
         </View>
         <Button
           title={"Guardar"}
@@ -137,6 +245,7 @@ const Index = ({ navigation, route }) => {
           titleStyle={{ marginHorizontal: 5, fontSize: 20 }}
           color={"green"}
           disabled={!litros || !cantinas || !temperatura || !compartimento}
+          onPress={() => onSave()}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -144,6 +253,20 @@ const Index = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  buttons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 20,
+  },
+  dialog_content: {
+    alignItems: "center",
+    flexDirection: "column",
+    gap: 20,
+  },
+  dialog: {
+    padding: 50,
+    width: "80%",
+  },
   info_navigation: {
     flexDirection: "row",
     alignItems: "center",
@@ -187,6 +310,7 @@ const styles = StyleSheet.create({
     gap: 20,
     height: "100%",
   },
+  date: { textTransform: "capitalize" },
 });
 
 export default Index;

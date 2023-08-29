@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Image, FlatList, ScrollView } from "react-native";
-import { Button, Text, Card, Slider, ListItem, Overlay } from "@rneui/themed";
+
+import { StyleSheet, View, Image, FlatList } from "react-native";
+import { Button, Text, Card, Slider, Overlay, Divider } from "@rneui/themed";
 import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { keyExtractor, renderItem } from "../../utils";
+import {
+  keyExtractor,
+  renderItem,
+  saveData,
+  getData,
+  removeData,
+} from "../../utils";
+
+import { listRoutes, conductores, ganaderos } from "../../utils/data";
 
 import moment from "moment";
 import "moment/locale/es";
@@ -13,76 +22,61 @@ const Index = ({ navigation }) => {
 
   const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
 
-  const list = [
-    {
-      name: "Finca1",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca2",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca3",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca4",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca5",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca6",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca6",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca6",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca6",
-      subtitle: "Litros fecha",
-    },
-    {
-      name: "Finca6",
-      subtitle: "Litros fecha",
-    },
-  ];
+  const [routeSelected, setRouteSelected] = useState();
+  const [userData, setUserData] = useState();
+  const [toggleOverlay, setToggleOverlay] = useState(false);
+  const [recolecciones, setRecolecciones] = useState();
+  const [percentage, setPercentage] = useState(0);
 
-  const listRoutes = [
-    { name: "Porvenir" },
-    { name: "San Carlos" },
-    { name: "Rosal" },
-    { name: "San Jorge" },
-    { name: "San Marcos" },
-    { name: "Alfarero" },
-    { name: "Rafa SAS" },
-    { name: "Choachi" },
-    { name: "Almeciga" },
-    { name: "Pinalact" },
-    { name: "Aquileo" },
-    { name: "Sopo" },
-    { name: "Ricolacteos" },
-    { name: "Fasalact" },
-    { name: "Avella" },
-    { name: "Choconta" },
-  ];
+  async function fetchData() {
+    const user = await getData("user");
+    const recolect = await getData("form");
 
-  const [routeSelected, setRouteSelected] = useState(undefined);
-  const [toggleOverlay, setToggleOverlay] = useState(
-    routeSelected ? false : true
-  );
+    setRecolecciones(
+      Object.entries(JSON.parse(recolect))
+        .map(([id, values]) => ({
+          id,
+          ...values,
+        }))
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    );
+
+    setUserData(conductores.find((item) => item.id === user));
+    setRouteSelected(conductores.find((item) => item.id === user)?.ruta);
+  }
+  /*  useEffect(() => {
+    const fetchPercentage = async () => {
+      const p = await getPercent();
+      setPercentage(p);
+    };
+
+    fetchPercentage();
+  }, [third]);
+
+  async function getPercent() {
+    const totalElements = ganaderos?.filter(
+      (item) => item.ruta === routeSelected
+    )?.length;
+    const selectedElements = recolecciones?.filter(
+      (item) => item.ruta === routeSelected
+    )?.length;
+    percentageSelected = Math.round((selectedElements / totalElements) * 100);
+
+    console.log("totalElements", totalElements);
+    console.log("selectedElements", selectedElements);
+
+    return percentageSelected;
+  } */
+
+  console.log("percentage", percentage);
+
+  const saveRouteSelected = (routeName) => {
+    saveData("ruta", routeName);
+  };
 
   useEffect(() => {
-    routeSelected && setToggleOverlay(false);
-  }, [routeSelected]);
+    fetchData();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -90,13 +84,16 @@ const Index = ({ navigation }) => {
         <View style={styles.info}>
           <View>
             <Text h3>Hola,</Text>
-            <Text h4>Pepito Perez</Text>
+            <Text h4>{userData?.name}</Text>
           </View>
           <View style={styles.info_icon}>
             <Icon name="account-circle" color="red" />
           </View>
         </View>
-        <Text style={styles.date}>{formattedDateTime}</Text>
+        <View style={styles.date_placas}>
+          <Text style={styles.date}>{formattedDateTime}</Text>
+          <Text style={styles.placas}>{userData?.placas}</Text>
+        </View>
       </View>
 
       <View style={styles.buttons}>
@@ -104,6 +101,7 @@ const Index = ({ navigation }) => {
           title={"Ruta"}
           icon={<Icon name="local-shipping" color="white" />}
           buttonStyle={styles.button}
+          onPress={() => setToggleOverlay(true)}
         />
         <Button
           title={"Registro"}
@@ -123,12 +121,12 @@ const Index = ({ navigation }) => {
         <View>
           <Card containerStyle={{ borderRadius: 10, margin: 0 }}>
             <View style={styles.card_route}>
-              <Icon
-                onPress={() => setToggleOverlay(true)}
-                name="near-me"
-                color="black"
-              />
-              <Text>Ruta {routeSelected}</Text>
+              <Icon name="near-me" color="black" />
+              <Text>
+                {`Ruta: ${
+                  listRoutes.find((item) => item.id === routeSelected)?.name
+                }`}
+              </Text>
             </View>
 
             <View style={styles.card_route}>
@@ -153,9 +151,9 @@ const Index = ({ navigation }) => {
                 }}
                 thumbTintColor="transparent"
                 trackStyle={{ height: 5, borderRadius: 20 }}
-                value={50}
+                value={0}
               />
-              <Text>80%</Text>
+              <Text>{percentage}%</Text>
             </View>
             <View style={styles.card_percent}>
               <Text>Recorrido</Text>
@@ -170,7 +168,14 @@ const Index = ({ navigation }) => {
               <View style={styles.last_list}>
                 <FlatList
                   keyExtractor={keyExtractor}
-                  data={list}
+                  data={recolecciones?.map((item) => {
+                    return {
+                      ...item,
+                      id: item.id,
+                      name: ganaderos.find((g) => g.id === item.ganadero)?.name,
+                      subtitle: item.fecha,
+                    };
+                  })}
                   renderItem={({ item }) => renderItem({ item })}
                 />
               </View>
@@ -179,9 +184,15 @@ const Index = ({ navigation }) => {
           </View>
         </View>
         <Overlay isVisible={toggleOverlay} overlayStyle={styles.overlay}>
-          <Text style={styles.overlay_text}>
-            {routeSelected ? "Cambiar ruta" : "Que ruta deseas iniciar hoy?"}
-          </Text>
+          <View style={styles.title_overlay}>
+            <Text style={styles.overlay_text}>{"Cambiar ruta"}</Text>
+            <Icon
+              name="close"
+              color="#c90000"
+              onPress={() => setToggleOverlay(false)}
+            />
+          </View>
+          <Divider />
           <View style={styles.overlay_list}>
             <FlatList
               keyExtractor={keyExtractor}
@@ -189,8 +200,11 @@ const Index = ({ navigation }) => {
               renderItem={({ item }) =>
                 renderItem({
                   item,
-
-                  onPress: () => setRouteSelected(item.name),
+                  onPress: () => {
+                    saveRouteSelected(item.id);
+                    setToggleOverlay(false);
+                    fetchData();
+                  },
                 })
               }
             />
@@ -240,16 +254,25 @@ const styles = StyleSheet.create({
   date: { textTransform: "capitalize" },
   last: { marginTop: 20, height: 500 },
   overlay: { padding: 20, width: "90%", height: "50%", borderRadius: 20 },
-  overlay_text: {
-    marginBottom: 40,
-    fontSize: 20,
-    textAlign: "center",
-    color: "#c90000",
-  },
+
   overlay_list: {
     flex: 1,
   },
   last_list: { height: "100%", marginTop: 20 },
+  date_placas: { flexDirection: "row", justifyContent: "space-between" },
+  placas: { textTransform: "uppercase", fontWeight: "bold" },
+  title_overlay: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignContent: "center",
+  },
+  overlay_text: {
+    marginBottom: 20,
+    fontSize: 20,
+    textAlign: "center",
+    color: "#c90000",
+    width: "90%",
+  },
 });
 
 export default Index;
