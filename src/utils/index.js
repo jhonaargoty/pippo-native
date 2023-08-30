@@ -10,7 +10,9 @@ export const renderItem = ({ item, type, onPress }) => {
       <ListItem.Content>
         <ListItem.Title>{item?.name}</ListItem.Title>
         {item?.subtitle && (
-          <ListItem.Subtitle>{item?.subtitle}</ListItem.Subtitle>
+          <ListItem.Subtitle style={item?.subtitleStyle}>
+            {item?.subtitle}
+          </ListItem.Subtitle>
         )}
       </ListItem.Content>
       <ListItem.Chevron />
