@@ -136,11 +136,11 @@ const Index = ({ navigation }) => {
           onPress={() => navigation.navigate("Create")}
         />
 
-        <Button
+        {/*    <Button
           buttonStyle={styles.button}
           title={"Perfil"}
           icon={<Icon name="person" color="white" />}
-        />
+        /> */}
       </View>
 
       <View style={styles.flex}>
@@ -216,6 +216,7 @@ const Index = ({ navigation }) => {
                 name: ganaderos.find((g) => g.id === item.ganadero)?.name,
                 subtitle: item.fecha,
                 subtitleStyle: styles.subtitle,
+                onPress: () => navigation.navigate("Print", { item: item }),
               };
             })}
             renderItem={({ item }) => renderItem({ item })}

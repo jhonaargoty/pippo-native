@@ -13,18 +13,37 @@ import "moment/locale/es";
 
 const Index = ({ navigation }) => {
   const [routeSelected, setRouteSelected] = useState();
+  const [recolecciones, setRecolecciones] = useState();
   moment.locale("es");
 
   const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
 
   async function fetchData() {
     const rutaData = await getData("ruta");
+    const recolectForm = await getData("form");
     setRouteSelected(rutaData);
+
+    const recoletArray = Object.entries(JSON.parse(recolectForm)).map(
+      ([id, values]) => ({
+        id,
+        ...values,
+      })
+    );
+
+    setRecolecciones(recoletArray);
   }
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const existRecolet = (item) => {
+    return recolecciones?.find(
+      (r) => parseInt(r.ganadero) === parseInt(item.id)
+    )
+      ? true
+      : false;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,8 +76,14 @@ const Index = ({ navigation }) => {
           renderItem={({ item }) =>
             renderItem({
               item,
+              icon: existRecolet(item) && {
+                name: "check-circle",
+                color: "green",
+              },
               onPress: () => {
-                navigation.navigate("Form", { data: item });
+                navigation.navigate(existRecolet(item) ? "Print" : "Form", {
+                  data: item,
+                });
               },
             })
           }

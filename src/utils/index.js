@@ -1,12 +1,15 @@
 import { ListItem } from "@rneui/themed";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Icon } from "react-native-elements";
 
 keyExtractor = (item, index) => index.toString();
 
-export const renderItem = ({ item, type, onPress }) => {
+export const renderItem = ({ item, onPress, icon }) => {
+  console.log("icon", icon);
+
   return (
-    <ListItem bottomDivider onPress={() => onPress(item.name)}>
-      {item?.avatar_url && <Avatar source={{ uri: item?.avatar_url }} />}
+    <ListItem bottomDivider onPress={() => onPress()}>
+      {icon && <Icon name={icon?.name} color={icon?.color} />}
       <ListItem.Content>
         <ListItem.Title>{item?.name}</ListItem.Title>
         {item?.subtitle && (
