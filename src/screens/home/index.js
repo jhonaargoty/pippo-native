@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-import {
-  StyleSheet,
-  View,
-  Image,
-  FlatList,
-  ImageBackground,
-} from "react-native";
+import { StyleSheet, View, FlatList, ImageBackground } from "react-native";
 import { Button, Text, Card, Slider, Overlay, Divider } from "@rneui/themed";
+import IconF from "react-native-vector-icons/FontAwesome5";
 import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import {
   keyExtractor,
   renderItem,
@@ -111,36 +107,36 @@ const Index = ({ navigation }) => {
                 <Text h4>{userData?.name}</Text>
               </View>
               <View style={styles.info_icon}>
-                <Icon name="account-circle" color="red" />
+                <IconF name="user-circle" color="red" size={25} />
               </View>
             </View>
             <View style={styles.date_placas}>
               <Text style={styles.date}>{formattedDateTime}</Text>
-              <Text style={styles.placas}>{userData?.placas}</Text>
+              <View style={styles.placas_main}>
+                <Text style={styles.placas}>{userData?.placas}</Text>
+              </View>
             </View>
           </View>
         </ImageBackground>
       </View>
 
       <View style={styles.buttons}>
-        <Button
-          title={"Ruta"}
-          icon={<Icon name="local-shipping" color="white" />}
-          buttonStyle={styles.button}
-          onPress={() => setToggleOverlay(true)}
-        />
-        <Button
-          title={"Registro"}
-          icon={<Icon name="note-add" color="white" />}
-          buttonStyle={styles.button}
-          onPress={() => navigation.navigate("Create")}
-        />
-
-        {/*    <Button
-          buttonStyle={styles.button}
-          title={"Perfil"}
-          icon={<Icon name="person" color="white" />}
-        /> */}
+        <View style={styles.buttons_m}>
+          <Button
+            title={"Ruta"}
+            icon={<IconF name="route" color="white" size={20} />}
+            buttonStyle={styles.button}
+            onPress={() => setToggleOverlay(true)}
+          />
+        </View>
+        <View style={styles.buttons_m}>
+          <Button
+            title={"Registro"}
+            icon={<IconF name="plus-circle" color="white" size={20} />}
+            buttonStyle={styles.button}
+            onPress={() => navigation.navigate("Create")}
+          />
+        </View>
       </View>
 
       <View style={styles.flex}>
@@ -148,50 +144,53 @@ const Index = ({ navigation }) => {
           containerStyle={{ borderRadius: 10, margin: 0, marginBottom: 20 }}
         >
           <View style={styles.card_route}>
-            <Icon name="near-me" color="black" />
-            <Text>
-              {`Ruta: ${
-                listRoutes.find((item) => item.id === routeSelected)?.name
-              }`}
+            <IconF name="location-arrow" color="black" />
+            <Text>Ruta:</Text>
+            <Text style={styles.route_name}>
+              {listRoutes.find((item) => item.id === routeSelected)?.name}
             </Text>
           </View>
 
           {percentage !== undefined && !isNaN(percentage) && (
             <View style={styles.card_route}>
-              <Slider
-                disabled
-                maximumValue={100}
-                minimumValue={0}
-                style={{ width: "90%", height: 50 }}
-                thumbStyle={{ height: 1, width: 1 }}
-                thumbProps={{
-                  children: (
-                    <Icon
-                      name="local-shipping"
-                      size={20}
-                      containerStyle={{
-                        bottom: 19,
-                        right: 20,
-                        width: 20,
-                        height: 20,
-                      }}
-                      color={getColorPercent()}
-                    />
-                  ),
-                }}
-                minimumTrackTintColor={getColorPercent()}
-                trackStyle={{
-                  height: 5,
-                  borderRadius: 20,
-                }}
-                value={percentage}
-              />
-
-              <Text>{percentage}%</Text>
+              <View style={styles.card_slider}>
+                <Slider
+                  disabled
+                  maximumValue={100}
+                  minimumValue={0}
+                  style={{ width: "94%", height: 50 }}
+                  thumbStyle={{ height: 1, width: 1 }}
+                  thumbProps={{
+                    children: (
+                      <Icon
+                        name="local-shipping"
+                        size={20}
+                        containerStyle={{
+                          bottom: 19,
+                          right: 20,
+                          width: 20,
+                          height: 20,
+                        }}
+                        color={getColorPercent()}
+                      />
+                    ),
+                  }}
+                  minimumTrackTintColor={getColorPercent()}
+                  trackStyle={{
+                    height: 5,
+                    borderRadius: 20,
+                  }}
+                  value={percentage}
+                />
+                <View style={styles.card_slider_icon}>
+                  <IconF name="flag-checkered" size={20} />
+                </View>
+              </View>
             </View>
           )}
           <View style={styles.card_percent}>
             <Text>Recorrido</Text>
+            <Text>{percentage}%</Text>
           </View>
         </Card>
 
@@ -216,17 +215,21 @@ const Index = ({ navigation }) => {
                 name: ganaderos.find((g) => g.id === item.ganadero)?.name,
                 subtitle: item.fecha,
                 subtitleStyle: styles.subtitle,
-                onPress: () => navigation.navigate("Print", { item: item }),
               };
             })}
-            renderItem={({ item }) => renderItem({ item })}
+            renderItem={({ item }) =>
+              renderItem({
+                item,
+                onPress: () => navigation.navigate("Print", { item: item }),
+              })
+            }
           />
         </Card>
 
         <Overlay isVisible={toggleOverlay} overlayStyle={styles.overlay}>
           <View style={styles.title_overlay}>
             <Text style={styles.overlay_text}>{"Cambiar ruta"}</Text>
-            <Icon
+            <IconF
               name="close"
               color="#c90000"
               onPress={() => setToggleOverlay(false)}
@@ -274,6 +277,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: -20,
+    gap: 10,
   },
   container: {
     flex: 1,
@@ -291,19 +295,26 @@ const styles = StyleSheet.create({
   },
   info_icon: { width: 30 },
   buttons: {
+    width: "100%",
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
   },
+  buttons_m: { width: "49%" },
   button: {
     backgroundColor: "#c90000",
     borderRadius: 20,
-    height: 81,
-    width: 81,
-    flexDirection: "column",
-    alignItems: "center",
+    gap: 10,
   },
-  card_route: { flexDirection: "row", alignItems: "center", gap: 10 },
+  card_route: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  card_slider_icon: { marginBottom: 20, marginRight: 10 },
+  card_slider: {
+    width: "100%",
+    flexDirection: "row",
+  },
   date: { textTransform: "capitalize" },
   last: { marginTop: 20, height: 500 },
   overlay: { padding: 20, width: "90%", height: "50%", borderRadius: 20 },
@@ -312,8 +323,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  date_placas: { flexDirection: "row", justifyContent: "space-between" },
-  placas: { textTransform: "uppercase", fontWeight: "bold" },
+  date_placas: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  placas_main: {
+    backgroundColor: "#ffcc00",
+    paddingHorizontal: 1,
+    paddingVertical: 1,
+  },
+  placas: {
+    textTransform: "uppercase",
+    fontWeight: "bold",
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   title_overlay: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -325,6 +351,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#c90000",
     width: "90%",
+  },
+  route_name: {
+    fontWeight: "bold",
+    fontSize: 15,
+    textDecorationLine: "underline",
   },
 });
 

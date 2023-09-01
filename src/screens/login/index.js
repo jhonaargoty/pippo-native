@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, View, Image } from "react-native";
 import { Button, Text, Input, LinearProgress } from "@rneui/themed";
-import { Icon } from "react-native-elements";
+import Icon from "react-native-vector-icons/FontAwesome5";
 import { saveData } from "../../utils";
 
 const Index = ({ navigation }) => {
@@ -27,7 +27,7 @@ const Index = ({ navigation }) => {
               style={styles.input}
               onChangeText={(e) => setuser(e)}
               placeholder="Usuario"
-              leftIcon={<Icon name="person" size={24} color="black" />}
+              leftIcon={<Icon name="user-alt" size={20} />}
               inputContainerStyle={
                 Platform.OS === "android" && { borderBottomWidth: 0 }
               }
@@ -38,7 +38,7 @@ const Index = ({ navigation }) => {
               style={styles.input}
               onChangeText={(e) => setpassword(e)}
               placeholder="Contraseña"
-              leftIcon={<Icon name="vpn-key" size={24} color="black" />}
+              leftIcon={<Icon name="key" size={20} />}
               secureTextEntry={true}
               inputContainerStyle={
                 Platform.OS === "android" && { borderBottomWidth: 0 }
@@ -50,7 +50,7 @@ const Index = ({ navigation }) => {
           <Button
             color={"red"}
             title="Iniciar sesion"
-            icon={<Icon name="east" color="white" />}
+            icon={<Icon name="long-arrow-alt-right" color="white" size={20} />}
             size="lg"
             titleStyle={{ marginHorizontal: 7 }}
             buttonStyle={{
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     height: 50,
     marginBottom: 10,
+    paddingHorizontal: 10,
   },
   content: {
     flex: 1,
