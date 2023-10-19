@@ -13,20 +13,27 @@ import "moment/locale/es";
 
 const Index = ({ navigation, route }) => {
   const { item } = route.params;
+  const { fetchData } = route.params || {};
 
   const [routeSelected, setRouteSelected] = useState();
   moment.locale("es");
 
   const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
 
-  async function fetchData() {
+  async function fetchDataPrint() {
     const rutaData = await getData("ruta");
     setRouteSelected(rutaData);
   }
 
   useEffect(() => {
-    fetchData();
+    fetchDataPrint();
   }, []);
+
+  const executeFunctionFromHome = () => {
+    if (fetchData) {
+      fetchData();
+    }
+  };
 
   const press = () => {};
 
@@ -53,7 +60,10 @@ const Index = ({ navigation, route }) => {
           icon={<Icon name="arrow-back" />}
           type="clear"
           buttonStyle={{ margin: 0 }}
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => {
+            navigation.navigate("Home");
+            executeFunctionFromHome();
+          }}
         />
         <View style={styles.info_main}>
           <View style={styles.info}>

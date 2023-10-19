@@ -16,16 +16,13 @@ import "moment/locale/es";
 
 const Index = ({ navigation, route }) => {
   moment.locale("es");
-
+  const { fetchData } = route.params || {};
   const { data } = route.params;
 
   const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
 
   const [litros, setLitros] = useState(null);
-  const [cantinas, setCantinas] = useState(null);
-  const [temperatura, setTemperatura] = useState(null);
   const [observaciones, setObservaciones] = useState(null);
-  const [compartimento, setCompartimento] = useState(null);
 
   const baseUrl = "https://pippo-test.000webhostapp.com/api/";
 
@@ -34,7 +31,13 @@ const Index = ({ navigation, route }) => {
   const [routeSelected, setRouteSelected] = useState();
   const [formCache, setFormCache] = useState();
 
-  async function fetchData() {
+  const executeFunctionFromHome = () => {
+    if (fetchData) {
+      fetchData();
+    }
+  };
+
+  async function fetchDataForm() {
     const rutaData = await getData("ruta");
     const formCache = await getData("form");
     setRouteSelected(rutaData);
@@ -42,7 +45,7 @@ const Index = ({ navigation, route }) => {
   }
 
   useEffect(() => {
-    fetchData();
+    fetchDataForm();
   }, []);
 
   const [isConnected, setIsConnected] = useState(true);
@@ -60,10 +63,7 @@ const Index = ({ navigation, route }) => {
   const onSave = async () => {
     const item = {
       litros,
-      cantinas,
-      temperatura,
       observaciones,
-      compartimento,
       fecha: moment().format("YYYY-MM-DD HH:mm:ss"),
       ganadero: data.id,
       conductor: 1,
@@ -71,6 +71,8 @@ const Index = ({ navigation, route }) => {
     };
 
     const url = `${baseUrl}/registro/addRegistro.php`;
+
+    console.log("isConnected", isConnected);
 
     if (!isConnected) {
       try {
@@ -155,35 +157,7 @@ const Index = ({ navigation, route }) => {
                 }
               />
             </View>
-            <View style={styles.labels}>
-              <Icon name="delete" size={20} />
-              <Text h5>Cantinas</Text>
-            </View>
-            <View style={styles.inputs_content}>
-              <Input
-                style={styles.input}
-                keyboardType="numeric"
-                onChangeText={(e) => setCantinas(e)}
-                inputContainerStyle={
-                  Platform.OS === "android" && { borderBottomWidth: 0 }
-                }
-              />
-            </View>
-            <View style={styles.labels}>
-              <Icon name="device-thermostat" size={20} />
-              <Text h5>Temperatura (°c)</Text>
-            </View>
 
-            <View style={styles.inputs_content}>
-              <Input
-                style={styles.input}
-                keyboardType="numeric"
-                onChangeText={(e) => setTemperatura(e)}
-                inputContainerStyle={
-                  Platform.OS === "android" && { borderBottomWidth: 0 }
-                }
-              />
-            </View>
             <View style={styles.labels}>
               <Icon name="description" size={20} />
               <Text h5>Observaciones</Text>
@@ -191,20 +165,6 @@ const Index = ({ navigation, route }) => {
             <View style={styles.inputs_content}>
               <Input
                 onChangeText={(e) => setObservaciones(e)}
-                inputContainerStyle={
-                  Platform.OS === "android" && { borderBottomWidth: 0 }
-                }
-              />
-            </View>
-            <View style={styles.labels}>
-              <Icon name="home-repair-service" size={20} />
-              <Text h5>Compartimento</Text>
-            </View>
-            <View style={styles.inputs_content}>
-              <Input
-                style={styles.input}
-                keyboardType="numeric"
-                onChangeText={(e) => setCompartimento(e)}
                 inputContainerStyle={
                   Platform.OS === "android" && { borderBottomWidth: 0 }
                 }
@@ -220,7 +180,19 @@ const Index = ({ navigation, route }) => {
                 <Button
                   title={"Imprimir"}
                   buttonStyle={{ borderRadius: 20, paddingHorizontal: 30 }}
-                  onPress={() => navigation.navigate("Print")}
+                  onPress={() =>
+                    navigation.navigate("Print", {
+                      item: {
+                        litros,
+                        observaciones,
+                        fecha: moment().format("YYYY-MM-DD HH:mm:ss"),
+                        ganadero: data.id,
+                        conductor: 1,
+                        ruta: routeSelected,
+                      },
+                      fetchData,
+                    })
+                  }
                 />
                 <Button
                   title={"Salir"}
@@ -229,7 +201,10 @@ const Index = ({ navigation, route }) => {
                     borderRadius: 20,
                     paddingHorizontal: 30,
                   }}
-                  onPress={() => navigation.navigate("Home")}
+                  onPress={() => {
+                    navigation.navigate("Home");
+                    executeFunctionFromHome();
+                  }}
                 />
               </View>
             </View>
@@ -244,7 +219,7 @@ const Index = ({ navigation, route }) => {
           buttonStyle={{ height: 50, borderRadius: 10 }}
           titleStyle={{ marginHorizontal: 5, fontSize: 20 }}
           color={"green"}
-          disabled={!litros || !cantinas || !temperatura || !compartimento}
+          disabled={!litros}
           onPress={() => onSave()}
         />
       </KeyboardAvoidingView>

@@ -11,14 +11,15 @@ import { getData } from "../../utils";
 import moment from "moment";
 import "moment/locale/es";
 
-const Index = ({ navigation }) => {
+const Index = ({ navigation, route }) => {
+  const { fetchData } = route.params || {};
   const [routeSelected, setRouteSelected] = useState();
   const [recolecciones, setRecolecciones] = useState();
   moment.locale("es");
 
   const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
 
-  async function fetchData() {
+  async function fetchDataCreate() {
     const rutaData = await getData("ruta");
     const recolectForm = await getData("form");
     setRouteSelected(rutaData);
@@ -34,7 +35,7 @@ const Index = ({ navigation }) => {
   }
 
   useEffect(() => {
-    fetchData();
+    fetchDataCreate();
   }, []);
 
   const existRecolet = (item) => {
@@ -83,6 +84,7 @@ const Index = ({ navigation }) => {
               onPress: () => {
                 navigation.navigate(existRecolet(item) ? "Print" : "Form", {
                   data: item,
+                  fetchData,
                 });
               },
             })

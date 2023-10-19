@@ -3,21 +3,48 @@ import { StyleSheet, View, Image } from "react-native";
 import { Button, Text, Input, LinearProgress } from "@rneui/themed";
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { saveData } from "../../utils";
+import axios from "axios";
 
 const Index = ({ navigation }) => {
   const [user, setuser] = useState(null);
   const [password, setpassword] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [errorLogin, setErrorlogin] = useState(null);
 
-  const login = () => {
-    saveData("user", "1");
-    navigation.navigate("Home");
+  const baseUrl = "https://pippo-test.000webhostapp.com/api/";
+
+  const login = async () => {
+    const url = `${baseUrl}/login/login.php`;
+    setLoading(true);
+
+    await axios
+      .post(url, {
+        user,
+        password,
+      })
+      .then((response) => {
+        if (response?.status === 200) {
+          saveData("user", JSON.stringify(response?.data));
+          navigation.navigate("Home");
+        }
+      })
+      .catch((error) => {
+        setErrorlogin(true);
+      });
+
+    setLoading(false);
   };
 
   return (
     <View style={styles.main}>
       <View style={styles.content}>
         <View>
-          <Image source={require("../../assets/logo_pipo.png")} />
+          <View style={styles.logo_main}>
+            <Image
+              style={styles.logo}
+              source={require("../../assets/logo_pipo.png")}
+            />
+          </View>
           <Text h1>Bienvenido</Text>
         </View>
 
@@ -45,6 +72,11 @@ const Index = ({ navigation }) => {
               }
             />
           </View>
+          <View>
+            {errorLogin && (
+              <Text style={styles.error_login}>Datos incorrectos</Text>
+            )}
+          </View>
         </View>
         <View>
           <Button
@@ -57,17 +89,22 @@ const Index = ({ navigation }) => {
               backgroundColor: "#c90000",
               borderRadius: 100,
             }}
-            /*   disabled={password && user ? false : true} */
+            disabled={password && user ? false : true}
             onPress={() => login()}
           />
         </View>
       </View>
-      <LinearProgress style={styles.bottomView} color="red" />
+      {loading && <LinearProgress style={styles.bottomView} color="red" />}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  logo: { backgroundColor: "red" },
+  error_login: {
+    color: "red",
+    marginHorizontal: "30%",
+  },
   main: {
     flex: 1,
     justifyContent: "center",

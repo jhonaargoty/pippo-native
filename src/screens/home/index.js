@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View, FlatList, ImageBackground } from "react-native";
 import { Button, Text, Card, Slider, Overlay, Divider } from "@rneui/themed";
 import IconF from "react-native-vector-icons/FontAwesome5";
+import IconF1 from "react-native-vector-icons/FontAwesome";
 import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -29,36 +30,49 @@ const Index = ({ navigation }) => {
   const [userData, setUserData] = useState();
   const [toggleOverlay, setToggleOverlay] = useState(false);
   const [recolecciones, setRecolecciones] = useState();
-  const [percentage, setPercentage] = useState();
+  const [percentage, setPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
 
   async function fetchData() {
     setLoading(true);
     const user = await getData("user");
+    console.log("USEr---", user.id);
+
+    if (user) {
+      setUserData(conductores.find((item) => item.id === user?.id));
+      setRouteSelected(conductores.find((item) => item.id === user?.id)?.ruta);
+      saveData("ruta", conductores.find((item) => item.id === user?.id)?.ruta);
+    }
+
+    console.log("userData", userData);
+
     const recolect = await getData("form");
 
-    const recoletArray = Object.entries(JSON.parse(recolect)).map(
-      ([id, values]) => ({
-        id,
-        ...values,
-      })
-    );
+    if (recolect) {
+      const recoletArray = Object.entries(JSON.parse(recolect)).map(
+        ([id, values]) => ({
+          id,
+          ...values,
+        })
+      );
 
-    setRecolecciones(
-      recoletArray.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-    );
+      setRecolecciones(
+        recoletArray.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+      );
+    }
 
-    setUserData(conductores.find((item) => item.id === user));
-    setRouteSelected(conductores.find((item) => item.id === user)?.ruta);
     setLoading(false);
   }
+
   useEffect(() => {
     const fetchPercentage = async () => {
       const p = await getPercent(recolecciones);
       setPercentage(p);
     };
 
-    fetchPercentage();
+    if (recolecciones) {
+      fetchPercentage();
+    }
   }, [recolecciones, routeSelected]);
 
   const getColorPercent = () => {
@@ -120,6 +134,13 @@ const Index = ({ navigation }) => {
         </ImageBackground>
       </View>
 
+      <Button
+        title={"imprimir"}
+        icon={<IconF name="route" color="white" size={20} />}
+        buttonStyle={styles.button}
+        onPress={() => navigation.navigate("Imprimir")}
+      />
+
       <View style={styles.buttons}>
         <View style={styles.buttons_m}>
           <Button
@@ -134,7 +155,9 @@ const Index = ({ navigation }) => {
             title={"Registro"}
             icon={<IconF name="plus-circle" color="white" size={20} />}
             buttonStyle={styles.button}
-            onPress={() => navigation.navigate("Create")}
+            onPress={() =>
+              navigation.navigate("Create", { fetchData: fetchData })
+            }
           />
         </View>
       </View>
@@ -151,43 +174,42 @@ const Index = ({ navigation }) => {
             </Text>
           </View>
 
-          {percentage !== undefined && !isNaN(percentage) && (
-            <View style={styles.card_route}>
-              <View style={styles.card_slider}>
-                <Slider
-                  disabled
-                  maximumValue={100}
-                  minimumValue={0}
-                  style={{ width: "94%", height: 50 }}
-                  thumbStyle={{ height: 1, width: 1 }}
-                  thumbProps={{
-                    children: (
-                      <Icon
-                        name="local-shipping"
-                        size={20}
-                        containerStyle={{
-                          bottom: 19,
-                          right: 20,
-                          width: 20,
-                          height: 20,
-                        }}
-                        color={getColorPercent()}
-                      />
-                    ),
-                  }}
-                  minimumTrackTintColor={getColorPercent()}
-                  trackStyle={{
-                    height: 5,
-                    borderRadius: 20,
-                  }}
-                  value={percentage}
-                />
-                <View style={styles.card_slider_icon}>
-                  <IconF name="flag-checkered" size={20} />
-                </View>
+          <View style={styles.card_route}>
+            <View style={styles.card_slider}>
+              <Slider
+                disabled
+                maximumValue={100}
+                minimumValue={0}
+                style={{ width: "94%", height: 50 }}
+                thumbStyle={{ height: 1, width: 1 }}
+                thumbProps={{
+                  children: (
+                    <Icon
+                      name="local-shipping"
+                      size={20}
+                      containerStyle={{
+                        bottom: 19,
+                        right: percentage === 0 ? 0 : 20,
+                        width: 20,
+                        height: 20,
+                      }}
+                      color={getColorPercent()}
+                    />
+                  ),
+                }}
+                minimumTrackTintColor={getColorPercent()}
+                trackStyle={{
+                  height: 5,
+                  borderRadius: 20,
+                }}
+                value={percentage}
+              />
+              <View style={styles.card_slider_icon}>
+                <IconF name="flag-checkered" size={20} />
               </View>
             </View>
-          )}
+          </View>
+
           <View style={styles.card_percent}>
             <Text>Recorrido</Text>
             <Text>{percentage}%</Text>
@@ -205,34 +227,43 @@ const Index = ({ navigation }) => {
           <Card.Title>Ultimas recolecciones</Card.Title>
           <Card.Divider />
 
-          <FlatList
-            style={{ height: "auto" }}
-            keyExtractor={keyExtractor}
-            data={recolecciones?.map((item) => {
-              return {
-                ...item,
-                id: item.id,
-                name: ganaderos.find((g) => g.id === item.ganadero)?.name,
-                subtitle: item.fecha,
-                subtitleStyle: styles.subtitle,
-              };
-            })}
-            renderItem={({ item }) =>
-              renderItem({
-                item,
-                onPress: () => navigation.navigate("Print", { item: item }),
-              })
-            }
-          />
+          {recolecciones?.length ? (
+            <FlatList
+              style={{ height: "auto" }}
+              keyExtractor={keyExtractor}
+              data={recolecciones?.map((item) => {
+                return {
+                  ...item,
+                  id: item.id,
+                  name: ganaderos.find((g) => g.id === item.ganadero)?.name,
+                  subtitle: item.fecha,
+                  subtitleStyle: styles.subtitle,
+                };
+              })}
+              renderItem={({ item }) =>
+                renderItem({
+                  item,
+                  onPress: () => navigation.navigate("Print", { item: item }),
+                })
+              }
+            />
+          ) : (
+            <View style={styles.not_data}>
+              <IconF1 name="warning" size={25} />
+              <Text>Sin datos</Text>
+            </View>
+          )}
         </Card>
 
         <Overlay isVisible={toggleOverlay} overlayStyle={styles.overlay}>
           <View style={styles.title_overlay}>
             <Text style={styles.overlay_text}>{"Cambiar ruta"}</Text>
-            <IconF
+            <IconF1
+              style={styles.overlay_close}
               name="close"
               color="#c90000"
               onPress={() => setToggleOverlay(false)}
+              size={20}
             />
           </View>
           <Divider />
@@ -259,6 +290,13 @@ const Index = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  not_data: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   container_info_content: {
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -267,7 +305,6 @@ const styles = StyleSheet.create({
   container_info: {
     overflow: "hidden",
     borderRadius: 10,
-    backgroundColor: "red",
   },
   subtitle: { color: "#c90000", fontSize: 12 },
   last_title: { marginBottom: 20, fontWeight: "bold" },
@@ -344,14 +381,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignContent: "center",
+    marginBottom: 20,
   },
   overlay_text: {
-    marginBottom: 20,
     fontSize: 20,
     textAlign: "center",
     color: "#c90000",
     width: "90%",
   },
+  overlay_close: { top: 3 },
   route_name: {
     fontWeight: "bold",
     fontSize: 15,

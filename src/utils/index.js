@@ -5,8 +5,6 @@ import { Icon } from "react-native-elements";
 keyExtractor = (item, index) => index.toString();
 
 export const renderItem = ({ item, onPress, icon }) => {
-  console.log("icon", icon);
-
   return (
     <ListItem bottomDivider onPress={() => onPress()}>
       {icon && <Icon name={icon?.name} color={icon?.color} />}
@@ -40,7 +38,7 @@ export const getData = async (key) => {
   try {
     const value = await AsyncStorage.getItem(key);
     if (value !== null) {
-      return value;
+      return JSON.parse(value);
     }
   } catch (error) {
     console.error("Error al recuperar datos:", error);
