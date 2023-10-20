@@ -5,9 +5,8 @@ import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 
-import { listRoutes } from "../../utils/data";
-
 import { saveData, getData } from "../../utils";
+import { BASE_URL } from "../../constants";
 
 import NetInfo from "@react-native-community/netinfo";
 
@@ -24,12 +23,11 @@ const Index = ({ navigation, route }) => {
   const [litros, setLitros] = useState(null);
   const [observaciones, setObservaciones] = useState(null);
 
-  const baseUrl = "https://pippo-test.000webhostapp.com/api/";
-
   const [dialogMessage, setDialogMessage] = useState(false);
 
   const [routeSelected, setRouteSelected] = useState();
   const [formCache, setFormCache] = useState();
+  const [rutasList, setRutasList] = useState([]);
 
   const executeFunctionFromHome = () => {
     if (fetchData) {
@@ -39,9 +37,13 @@ const Index = ({ navigation, route }) => {
 
   async function fetchDataForm() {
     const rutaData = await getData("ruta");
+    const rutas = await getData("rutas");
+
     const formCache = await getData("form");
     setRouteSelected(rutaData);
     setFormCache(formCache);
+
+    setRutasList(rutas);
   }
 
   useEffect(() => {
@@ -70,7 +72,7 @@ const Index = ({ navigation, route }) => {
       ruta: routeSelected,
     };
 
-    const url = `${baseUrl}/registro/addRegistro.php`;
+    const url = `${BASE_URL}/registro/addRegistro.php`;
 
     console.log("isConnected", isConnected);
 
@@ -86,7 +88,7 @@ const Index = ({ navigation, route }) => {
       }
     } else {
       if (formCache) {
-        const oldData = JSON.parse(formCache);
+        const oldData = formCache;
 
         const save = await saveData(
           "form",
@@ -120,7 +122,7 @@ const Index = ({ navigation, route }) => {
               <View style={styles.info}>
                 <Icon name="local-shipping" color="#c90000" />
                 <Text h3>{`Ruta: ${
-                  listRoutes.find((item) => item.id === routeSelected)?.name
+                  rutasList.find((item) => item.id === routeSelected)?.name
                 }`}</Text>
               </View>
               <Text h5 style={styles.date}>

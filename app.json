@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Pippo",
-    "slug": "Pippo",
+    "name": "pippo-native",
+    "slug": "pippo-native",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

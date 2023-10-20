@@ -1,9 +1,12 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Image, Keyboard } from "react-native";
 import { Button, Text, Input, LinearProgress } from "@rneui/themed";
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { saveData } from "../../utils";
 import axios from "axios";
+import NetInfo from "@react-native-community/netinfo";
+import { usuariosLOCAL } from "../../utils/data";
+import { BASE_URL } from "../../constants";
 
 const Index = ({ navigation }) => {
   const [user, setuser] = useState(null);
@@ -11,26 +14,47 @@ const Index = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errorLogin, setErrorlogin] = useState(null);
 
-  const baseUrl = "https://pippo-test.000webhostapp.com/api/";
+  const [isConnected, setIsConnected] = useState(true);
+
+  const verifyConnection = () => {
+    NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected);
+    });
+  };
+
+  useEffect(() => {
+    verifyConnection();
+  }, []);
 
   const login = async () => {
-    const url = `${baseUrl}/login/login.php`;
+    Keyboard.dismiss();
+    const url = `${BASE_URL}/login/login.php`;
     setLoading(true);
 
-    await axios
-      .post(url, {
-        user,
-        password,
-      })
-      .then((response) => {
-        if (response?.status === 200) {
-          saveData("user", JSON.stringify(response?.data));
-          navigation.navigate("Home");
-        }
-      })
-      .catch((error) => {
+    if (isConnected) {
+      await axios
+        .post(url, {
+          user,
+          password,
+        })
+        .then((response) => {
+          if (response?.status === 200) {
+            saveData("user", response?.data);
+            navigation.navigate("Home");
+          }
+        })
+        .catch((error) => {
+          setErrorlogin(true);
+        });
+    } else {
+      const usuarioTemp = usuariosLOCAL.find(({ usuario }) => usuario === user);
+      if (usuarioTemp && usuarioTemp.password === password) {
+        saveData("user", usuarioTemp);
+        navigation.navigate("Home");
+      } else {
         setErrorlogin(true);
-      });
+      }
+    }
 
     setLoading(false);
   };
@@ -39,7 +63,7 @@ const Index = ({ navigation }) => {
     <View style={styles.main}>
       <View style={styles.content}>
         <View>
-          <View style={styles.logo_main}>
+          <View>
             <Image
               style={styles.logo}
               source={require("../../assets/logo_pipo.png")}
@@ -100,10 +124,16 @@ const Index = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  logo: { backgroundColor: "red" },
+  logo: {
+    width: 120,
+    height: 120,
+    width: "100%",
+    resizeMode: "contain",
+  },
   error_login: {
     color: "red",
     marginHorizontal: "30%",
+    width: "100%",
   },
   main: {
     flex: 1,

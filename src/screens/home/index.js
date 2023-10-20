@@ -6,6 +6,7 @@ import IconF from "react-native-vector-icons/FontAwesome5";
 import IconF1 from "react-native-vector-icons/FontAwesome";
 import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
+import NetInfo from "@react-native-community/netinfo";
 
 import {
   keyExtractor,
@@ -14,8 +15,10 @@ import {
   getData,
   removeData,
 } from "../../utils";
+import axios from "axios";
 
-import { listRoutes, conductores, ganaderos } from "../../utils/data";
+import { listRoutes, ganaderos } from "../../utils/data";
+import { BASE_URL } from "../../constants";
 
 import moment from "moment";
 import "moment/locale/es";
@@ -32,29 +35,38 @@ const Index = ({ navigation }) => {
   const [recolecciones, setRecolecciones] = useState();
   const [percentage, setPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [conductoresList, setConductoresList] = useState([]);
+
+  const [isConnected, setIsConnected] = useState(true);
+
+  const verifyConnection = () => {
+    NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected);
+    });
+  };
 
   async function fetchData() {
     setLoading(true);
     const user = await getData("user");
-    console.log("USEr---", user.id);
 
-    if (user) {
-      setUserData(conductores.find((item) => item.id === user?.id));
-      setRouteSelected(conductores.find((item) => item.id === user?.id)?.ruta);
-      saveData("ruta", conductores.find((item) => item.id === user?.id)?.ruta);
+    if (user && conductoresList) {
+      setUserData(conductoresList.find((item) => item.id === user?.id));
+      setRouteSelected(
+        conductoresList.find((item) => item.id === user?.id)?.ruta
+      );
+      saveData(
+        "ruta",
+        conductoresList.find((item) => item.id === user?.id)?.ruta
+      );
     }
-
-    console.log("userData", userData);
 
     const recolect = await getData("form");
 
     if (recolect) {
-      const recoletArray = Object.entries(JSON.parse(recolect)).map(
-        ([id, values]) => ({
-          id,
-          ...values,
-        })
-      );
+      const recoletArray = Object.entries(recolect).map(([id, values]) => ({
+        id,
+        ...values,
+      }));
 
       setRecolecciones(
         recoletArray.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
@@ -102,13 +114,47 @@ const Index = ({ navigation }) => {
     return percentageSelected;
   }
 
-  const saveRouteSelected = (routeName) => {
-    saveData("ruta", routeName);
+  const saveRouteSelected = (rutaId) => {
+    setRouteSelected(rutaId);
+    saveData("ruta", rutaId);
+  };
+
+  const getListAllConductores = async () => {
+    if (isConnected) {
+      axios
+        .get(`${BASE_URL}/conductores/getListConductores.php`)
+        .then((response) => {
+          saveData("conductores", response?.data);
+          setConductoresList(response?.data);
+        });
+      axios
+        .get(`${BASE_URL}/ganaderos/getListGanaderos.php`)
+        .then((response) => {
+          saveData("ganaderos", response?.data);
+          setGanaderosList(response?.data);
+        });
+      axios.get(`${BASE_URL}/rutas/getListRutas.php`).then((response) => {
+        saveData("rutas", response?.data);
+      });
+    } else {
+      setConductoresList(await getData("conductores"));
+      setGanaderosList(await getData("ganaderos"));
+    }
   };
 
   useEffect(() => {
     fetchData();
+  }, [conductoresList]);
+
+  useEffect(() => {
+    verifyConnection();
+    getListAllConductores();
   }, []);
+
+  const logout = () => {
+    removeData("user");
+    navigation.navigate("Login");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -118,16 +164,23 @@ const Index = ({ navigation }) => {
             <View style={styles.info}>
               <View>
                 <Text h3>Hola,</Text>
-                <Text h4>{userData?.name}</Text>
+                <Text h4>{userData?.nombre}</Text>
               </View>
               <View style={styles.info_icon}>
-                <IconF name="user-circle" color="red" size={25} />
+                <IconF
+                  name="power-off"
+                  color="red"
+                  size={25}
+                  onPress={() => {
+                    logout();
+                  }}
+                />
               </View>
             </View>
             <View style={styles.date_placas}>
               <Text style={styles.date}>{formattedDateTime}</Text>
               <View style={styles.placas_main}>
-                <Text style={styles.placas}>{userData?.placas}</Text>
+                <Text style={styles.placas}>{userData?.placa}</Text>
               </View>
             </View>
           </View>
@@ -277,7 +330,6 @@ const Index = ({ navigation }) => {
                   onPress: () => {
                     saveRouteSelected(item.id);
                     setToggleOverlay(false);
-                    fetchData();
                   },
                 })
               }

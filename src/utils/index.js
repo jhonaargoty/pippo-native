@@ -24,11 +24,11 @@ export const renderItem = ({ item, onPress, icon }) => {
 // Para guardar datos
 export const saveData = async (key, value) => {
   try {
-    await AsyncStorage.setItem(key, value);
-    console.log("Datos guardados exitosamente");
+    await AsyncStorage.setItem(key, JSON.stringify(value));
+    console.log("Datos guardados exitosamente", key);
     return "SUCCESS";
   } catch (error) {
-    console.error("Error al guardar datos:", error);
+    console.error("Error al guardar datos:", key, error);
     return "ERROR";
   }
 };
@@ -41,7 +41,7 @@ export const getData = async (key) => {
       return JSON.parse(value);
     }
   } catch (error) {
-    console.error("Error al recuperar datos:", error);
+    console.error("Error al recuperar datos:", key, error);
   }
 };
 
@@ -49,8 +49,8 @@ export const getData = async (key) => {
 export const removeData = async (key) => {
   try {
     await AsyncStorage.removeItem(key);
-    console.log("Datos eliminados exitosamente");
+    console.log("Datos eliminados exitosamente", key);
   } catch (error) {
-    console.error("Error al eliminar datos:", error);
+    console.error("Error al eliminar datos:", key, error);
   }
 };

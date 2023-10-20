@@ -5,7 +5,6 @@ import { Icon } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { keyExtractor, renderItem } from "../../utils";
-import { ganaderos, listRoutes } from "../../utils/data";
 import { getData } from "../../utils";
 
 import moment from "moment";
@@ -14,6 +13,8 @@ import "moment/locale/es";
 const Index = ({ navigation, route }) => {
   const { fetchData } = route.params || {};
   const [routeSelected, setRouteSelected] = useState();
+  const [ganaderosList, setGanaderosList] = useState([]);
+  const [rutasList, setRutasList] = useState([]);
   const [recolecciones, setRecolecciones] = useState();
   moment.locale("es");
 
@@ -21,17 +22,19 @@ const Index = ({ navigation, route }) => {
 
   async function fetchDataCreate() {
     const rutaData = await getData("ruta");
+    const ganaderos = await getData("ganaderos");
+    const rutas = await getData("rutas");
     const recolectForm = await getData("form");
     setRouteSelected(rutaData);
+    setGanaderosList(ganaderos);
+    setRutasList(rutas);
 
-    const recoletArray = Object.entries(JSON.parse(recolectForm)).map(
-      ([id, values]) => ({
-        id,
-        ...values,
-      })
-    );
+    /*  const recoletArray = Object.entries(recolectForm).map(([id, values]) => ({
+      id,
+      ...values,
+    }));
 
-    setRecolecciones(recoletArray);
+    setRecolecciones(recoletArray); */
   }
 
   useEffect(() => {
@@ -39,11 +42,11 @@ const Index = ({ navigation, route }) => {
   }, []);
 
   const existRecolet = (item) => {
-    return recolecciones?.find(
+    /*  return recolecciones?.find(
       (r) => parseInt(r.ganadero) === parseInt(item.id)
     )
       ? true
-      : false;
+      : false; */
   };
 
   return (
@@ -60,7 +63,7 @@ const Index = ({ navigation, route }) => {
           <View style={styles.info}>
             <Icon name="local-shipping" color="#c90000" />
             <Text h3>{`Ruta: ${
-              listRoutes.find((item) => item.id === routeSelected)?.name
+              rutasList.find((item) => item.id === routeSelected)?.name
             }`}</Text>
           </View>
           <Text h5 style={styles.date}>
@@ -73,7 +76,7 @@ const Index = ({ navigation, route }) => {
       <View style={styles.list}>
         <FlatList
           keyExtractor={keyExtractor}
-          data={ganaderos}
+          data={ganaderosList}
           renderItem={({ item }) =>
             renderItem({
               item,
