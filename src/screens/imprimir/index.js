@@ -1,7 +1,8 @@
-import React from "react";
+import React from 'react';
+import { Text } from '@rneui/themed';
 
 function Index() {
-  return <div>Index</div>;
+  return <Text>Index</Text>;
 }
 
 export default Index;

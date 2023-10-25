@@ -1,70 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, FlatList } from "react-native";
-import { Text, Divider, Button } from "@rneui/themed";
-import { Icon } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-import { keyExtractor, renderItem } from "../../utils";
-import { conductores, ganaderos, listRoutes } from "../../utils/data";
-import { getData } from "../../utils";
-
-import moment from "moment";
-import "moment/locale/es";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Text, Divider, Button } from '@rneui/themed';
+import { Icon } from 'react-native-elements';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMyContext } from '../../../context';
 
 const Index = ({ navigation, route }) => {
-  const { item } = route.params;
-  const { fetchData } = route.params || {};
+  const { listConductores } = useMyContext();
+  const { propData } = route.params;
 
-  const [routeSelected, setRouteSelected] = useState();
-  moment.locale("es");
-
-  const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
-
-  async function fetchDataPrint() {
-    const rutaData = await getData("ruta");
-    setRouteSelected(rutaData);
-  }
-
-  useEffect(() => {
-    fetchDataPrint();
-  }, []);
-
-  const executeFunctionFromHome = () => {
-    if (fetchData) {
-      fetchData();
-    }
-  };
-
-  const press = () => {};
-
-  console.log("ITEM---", item);
-
-  /* ITEM-- -
-    {
-      cantinas: null,
-      compartimento: null,
-      conductor: 1,
-      fecha: "2023-08-29 11:14:44",
-      ganadero: 10693024272,
-      id: "item-7",
-      litros: null,
-      observaciones: null,
-      ruta: "1",
-      temperatura: null,
-    }; */
+  console.log('item', propData);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.info_navigation}>
-        <Button
-          icon={<Icon name="arrow-back" />}
-          type="clear"
-          buttonStyle={{ margin: 0 }}
-          onPress={() => {
-            navigation.navigate("Home");
-            executeFunctionFromHome();
-          }}
-        />
         <View style={styles.info_main}>
           <View style={styles.info}>
             <Icon name="assignment" color="#c90000" />
@@ -82,7 +31,7 @@ const Index = ({ navigation, route }) => {
         </View>
         <View style={styles.info_pippo}>
           <Text style={styles.recibo}>Recibo de recolección</Text>
-          <Text>{`Fecha: ${item?.fecha}`}</Text>
+          <Text>{`Fecha: ${propData?.fecha}`}</Text>
         </View>
         <Divider style={styles.dividier} />
 
@@ -90,28 +39,28 @@ const Index = ({ navigation, route }) => {
           <View>
             <View style={styles.item}>
               <Text style={styles.item_desc}>Ruta:</Text>
-              <Text>{listRoutes?.find((l) => l.id === item?.ruta)?.name}</Text>
+              <Text style={styles.capitalize}>{propData?.ruta}</Text>
             </View>
-            <View style={styles.item}>
+            <View style={styles.item_ganadero}>
               <Text style={styles.item_desc}>Ganadero: </Text>
-              <Text>
-                {ganaderos?.find((g) => g.id === item?.ganadero)?.name}
-              </Text>
+              <Text>{propData?.ganadero}</Text>
             </View>
             <View style={styles.item}>
               <Text style={styles.item_desc}>Documento: </Text>
-              <Text>{item?.ganadero}</Text>
+              <Text>{propData?.ganadero_documento}</Text>
             </View>
           </View>
           <View>
             <View style={styles.item}>
               <Text style={styles.item_imp}>Litros</Text>
-              <Text style={styles.item_imp_desc}>{item?.litros || "10"}</Text>
+              <Text style={styles.item_imp_desc}>
+                {propData?.litros || '10'}
+              </Text>
             </View>
             <View style={styles.item}>
               <Text style={styles.item_imp}>Observaciones</Text>
               <Text style={styles.item_imp_desc}>
-                {item?.observaciones || "Ninguna"}
+                {propData?.observaciones || 'Ninguna'}
               </Text>
             </View>
           </View>
@@ -119,23 +68,16 @@ const Index = ({ navigation, route }) => {
 
         <Divider style={styles.last_d} />
         <View style={styles.condc}>
-          <View style={styles.item}>
+          <View style={styles.item_cond}>
             <Text style={styles.item_desc}>Recolectado por:</Text>
-            <Text>
-              {
-                conductores?.find(
-                  (c) => parseInt(c.id) === parseInt(item?.conductor)
-                )?.name
-              }
-            </Text>
+            <Text>{propData?.conductor}</Text>
           </View>
-          <View style={styles.item}>
+          <View style={styles.item_cond}>
             <Text style={styles.item_desc}>Placas:</Text>
             <Text>
               {
-                conductores?.find(
-                  (c) => parseInt(c.id) === parseInt(item?.conductor)
-                )?.placas
+                listConductores?.find((lc) => lc.id === propData?.conductor_id)
+                  ?.placa
               }
             </Text>
           </View>
@@ -145,7 +87,7 @@ const Index = ({ navigation, route }) => {
         <Button
           onPress={() => print()}
           buttonStyle={styles.button}
-          title={"Imprimir"}
+          title={'Imprimir'}
           icon={<Icon name="print" color="white" />}
         />
       </View>
@@ -154,56 +96,74 @@ const Index = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  button: { backgroundColor: "#11B600", width: "100%", borderRadius: 20 },
+  capitalize: { textTransform: 'capitalize' },
+  button: { backgroundColor: '#11B600', width: '100%', borderRadius: 20 },
   last_d: { marginBottom: -15 },
-  condc: { flexDirection: "row", justifyContent: "space-between" },
-  info_lts: { paddingVertical: 20, gap: 30 },
+  condc: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  info_lts: {
+    paddingVertical: 20,
+    gap: 30,
+  },
   item_imp_desc: {
     fontSize: 20,
-    fontWeight: "bold",
-    textDecorationLine: "underline",
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
-  item_imp: { fontSize: 16, fontWeight: "bold" },
-  item_desc: { fontWeight: "bold" },
-  item: { flexDirection: "row", gap: 5, alignItems: "center" },
+  item_imp: { fontSize: 16, fontWeight: 'bold' },
+  item_desc: { fontWeight: 'bold' },
+  item: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  item_ganadero: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
   dividier: { marginTop: -15 },
   main: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     flex: 1,
-    padding: "10%",
+    padding: '10%',
     gap: 20,
-    flexDirection: "column",
+    flexDirection: 'column',
     borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#aeb6bf",
+    borderStyle: 'dashed',
+    borderColor: '#aeb6bf',
   },
   recibo: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   name: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
-  info_pippo: { alignItems: "center" },
+  info_pippo: { alignItems: 'center' },
   container: {
     flex: 1,
     padding: 20,
     gap: 20,
-    height: "100%",
+    height: '100%',
   },
   info_main: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 5,
   },
   info: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
   info_navigation: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

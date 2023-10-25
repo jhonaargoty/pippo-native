@@ -1,54 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, KeyboardAvoidingView, Platform } from "react-native";
-import { Text, Divider, Input, Card, Button, Overlay } from "@rneui/themed";
-import { Icon } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, Divider, Input, Card, Button, Overlay } from '@rneui/themed';
+import { Icon } from 'react-native-elements';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
+import { useMyContext } from '../../../context';
 
-import { saveData, getData } from "../../utils";
-import { BASE_URL } from "../../constants";
+import { saveData } from '../../utils';
+import { BASE_URL } from '../../constants';
 
-import NetInfo from "@react-native-community/netinfo";
+import NetInfo from '@react-native-community/netinfo';
 
-import moment from "moment";
-import "moment/locale/es";
+import moment from 'moment';
+import 'moment/locale/es';
 
 const Index = ({ navigation, route }) => {
-  moment.locale("es");
-  const { fetchData } = route.params || {};
-  const { data } = route.params;
+  const { rutaActual, user, fetchDataRecolecciones } = useMyContext();
 
-  const formattedDateTime = moment().format("dddd D [de] MMMM : HH:mm");
+  moment.locale('es');
+  const { fetchData } = route.params || {};
+  const { propData } = route.params;
+
+  const formattedDateTime = moment().format('dddd D [de] MMMM : HH:mm');
 
   const [litros, setLitros] = useState(null);
   const [observaciones, setObservaciones] = useState(null);
-
   const [dialogMessage, setDialogMessage] = useState(false);
-
-  const [routeSelected, setRouteSelected] = useState();
-  const [formCache, setFormCache] = useState();
-  const [rutasList, setRutasList] = useState([]);
-
-  const executeFunctionFromHome = () => {
-    if (fetchData) {
-      fetchData();
-    }
-  };
-
-  async function fetchDataForm() {
-    const rutaData = await getData("ruta");
-    const rutas = await getData("rutas");
-
-    const formCache = await getData("form");
-    setRouteSelected(rutaData);
-    setFormCache(formCache);
-
-    setRutasList(rutas);
-  }
-
-  useEffect(() => {
-    fetchDataForm();
-  }, []);
 
   const [isConnected, setIsConnected] = useState(true);
 
@@ -66,42 +43,40 @@ const Index = ({ navigation, route }) => {
     const item = {
       litros,
       observaciones,
-      fecha: moment().format("YYYY-MM-DD HH:mm:ss"),
-      ganadero: data.id,
-      conductor: 1,
-      ruta: routeSelected,
+      fecha: moment().format('YYYY-MM-DD'),
+      ganadero: propData?.id,
+      conductor: user?.id,
+      ruta: rutaActual?.id,
     };
 
-    const url = `${BASE_URL}/registro/addRegistro.php`;
+    const url = `${BASE_URL}/recolecciones/addRecoleccion.php`;
 
-    console.log("isConnected", isConnected);
-
-    if (!isConnected) {
+    if (isConnected) {
       try {
         setDialogMessage(true);
-        const response = await axios.post(url, { item: item });
+        const response = await axios.post(url, { item });
         console.log(response.data);
       } catch (error) {
         setDialogMessage(true);
-        console.error("Error:", error);
-        console.error("Response data:", error.response.data);
+        console.error('Error:', error);
+        console.error('Response data:', error.response.data);
       }
     } else {
       if (formCache) {
         const oldData = formCache;
 
         const save = await saveData(
-          "form",
+          'form',
           JSON.stringify({
             ...oldData,
-            ["item-" + (Object.keys(oldData).length + 1)]: item,
-          })
+            ['item-' + (Object.keys(oldData).length + 1)]: item,
+          }),
         );
 
-        save === "SUCCESS" && setDialogMessage(true);
+        save === 'SUCCESS' && setDialogMessage(true);
       } else {
-        const save = await saveData("form", JSON.stringify({ "item-1": item }));
-        save === "SUCCESS" && setDialogMessage(true);
+        const save = await saveData('form', JSON.stringify({ 'item-1': item }));
+        save === 'SUCCESS' && setDialogMessage(true);
       }
     }
   };
@@ -111,19 +86,20 @@ const Index = ({ navigation, route }) => {
       <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={10}>
         <View style={styles.content}>
           <View style={styles.info_navigation}>
-            <Button
+            {/*   <Button
               icon={<Icon name="arrow-back" />}
               type="clear"
               buttonStyle={{ margin: 0 }}
               onPress={() => navigation.navigate("Create")}
             />
-
+ */}
             <View style={styles.info_main}>
               <View style={styles.info}>
                 <Icon name="local-shipping" color="#c90000" />
-                <Text h3>{`Ruta: ${
-                  rutasList.find((item) => item.id === routeSelected)?.name
-                }`}</Text>
+                <Text
+                  h3
+                  style={styles.info_ruta}
+                >{`Ruta: ${rutaActual?.nombre}`}</Text>
               </View>
               <Text h5 style={styles.date}>
                 {formattedDateTime}
@@ -133,9 +109,9 @@ const Index = ({ navigation, route }) => {
           </View>
 
           <View style={styles.info_ganadero}>
-            <Text h4>{data.name}</Text>
-            <Text h5>Nit: {data.id}</Text>
-            <Text h5>Promedio: {data.promedio} lts</Text>
+            <Text h4>{propData.name}</Text>
+            <Text h5>Nit: {propData.documento}</Text>
+            <Text h5>Promedio: {propData.promedio} lts</Text>
           </View>
           <Card
             containerStyle={{
@@ -155,7 +131,7 @@ const Index = ({ navigation, route }) => {
                 keyboardType="numeric"
                 onChangeText={(e) => setLitros(e)}
                 inputContainerStyle={
-                  Platform.OS === "android" && { borderBottomWidth: 0 }
+                  Platform.OS === 'android' && { borderBottomWidth: 0 }
                 }
               />
             </View>
@@ -168,44 +144,44 @@ const Index = ({ navigation, route }) => {
               <Input
                 onChangeText={(e) => setObservaciones(e)}
                 inputContainerStyle={
-                  Platform.OS === "android" && { borderBottomWidth: 0 }
+                  Platform.OS === 'android' && { borderBottomWidth: 0 }
                 }
               />
             </View>
           </Card>
           <Overlay isVisible={dialogMessage} overlayStyle={styles.dialog}>
             <View style={styles.dialog_content}>
-              <Icon name="check-circle" size={40} color={"green"} />
+              <Icon name="check-circle" size={40} color={'green'} />
               <Text h4>Registro guardado</Text>
 
               <View style={styles.buttons}>
                 <Button
-                  title={"Imprimir"}
+                  title={'Imprimir'}
                   buttonStyle={{ borderRadius: 20, paddingHorizontal: 30 }}
                   onPress={() =>
-                    navigation.navigate("Print", {
+                    navigation.navigate('Print', {
                       item: {
                         litros,
                         observaciones,
-                        fecha: moment().format("YYYY-MM-DD HH:mm:ss"),
-                        ganadero: data.id,
+                        fecha: moment().format('YYYY-MM-DD HH:mm:ss'),
+                        ganadero: propData.id,
                         conductor: 1,
-                        ruta: routeSelected,
+                        ruta: rutaActual,
                       },
                       fetchData,
                     })
                   }
                 />
                 <Button
-                  title={"Salir"}
+                  title={'Salir'}
                   buttonStyle={{
-                    backgroundColor: "rgba(214, 61, 57, 1)",
+                    backgroundColor: 'rgba(214, 61, 57, 1)',
                     borderRadius: 20,
                     paddingHorizontal: 30,
                   }}
                   onPress={() => {
-                    navigation.navigate("Home");
-                    executeFunctionFromHome();
+                    navigation.navigate('Home');
+                    fetchDataRecolecciones();
                   }}
                 />
               </View>
@@ -213,14 +189,14 @@ const Index = ({ navigation, route }) => {
           </Overlay>
         </View>
         <Button
-          title={"Guardar"}
+          title={'Guardar'}
           containerStyle={{
-            width: "100%",
+            width: '100%',
             marginTop: 20,
           }}
           buttonStyle={{ height: 50, borderRadius: 10 }}
           titleStyle={{ marginHorizontal: 5, fontSize: 20 }}
-          color={"green"}
+          color={'green'}
           disabled={!litros}
           onPress={() => onSave()}
         />
@@ -231,35 +207,35 @@ const Index = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   buttons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 20,
   },
   dialog_content: {
-    alignItems: "center",
-    flexDirection: "column",
+    alignItems: 'center',
+    flexDirection: 'column',
     gap: 20,
   },
   dialog: {
     padding: 50,
-    width: "80%",
+    width: '80%',
   },
   info_navigation: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     /* marginRight: 50, */
   },
   labels: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 2,
-    alignItems: "center",
+    alignItems: 'center',
   },
   content: {
     gap: 20,
   },
   input: {
     fontSize: 25,
-    textAlign: "center",
+    textAlign: 'center',
   },
   inputs_content: {
     borderWidth: 0.4,
@@ -268,26 +244,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   info_ganadero: {
-    flexDirection: "column",
+    flexDirection: 'column',
   },
   info: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
   info_main: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 5,
-    width: "100%",
+    width: '100%',
     flex: 1,
   },
   container: {
     flex: 1,
     padding: 20,
     gap: 20,
-    height: "100%",
+    height: '100%',
   },
-  date: { textTransform: "capitalize" },
+  date: { textTransform: 'capitalize' },
+  info_ruta: { textTransform: 'capitalize' },
 });
 
 export default Index;

@@ -9,7 +9,7 @@ export const renderItem = ({ item, onPress, icon }) => {
     <ListItem bottomDivider onPress={() => onPress()}>
       {icon && <Icon name={icon?.name} color={icon?.color} />}
       <ListItem.Content>
-        <ListItem.Title>{item?.name}</ListItem.Title>
+        <ListItem.Title style={item?.nameStyle}>{item?.name}</ListItem.Title>
         {item?.subtitle && (
           <ListItem.Subtitle style={item?.subtitleStyle}>
             {item?.subtitle}

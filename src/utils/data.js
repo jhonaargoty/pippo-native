@@ -1,4 +1,4 @@
-export const ganaderos = [
+export const ganaderosLOCAL = [
   {
     nombre: "Jose Wilmer Garzon Portuguez",
     documento: 10693024272,
@@ -104,29 +104,35 @@ export const ganaderos = [
   },
 ];
 
-export const rutas = [
-  { id: "1", name: "Porvenir" },
-  { id: "2", name: "San Carlos" },
-  { id: "3", name: "Rosal" },
-  { id: "4", name: "San Jorge" },
-  { id: "5", name: "San Marcos" },
-  { id: "6", name: "Alfarero" },
-  { id: "7", name: "Rafa SAS" },
-  { id: "8", name: "Choachi" },
-  { id: "9", name: "Almeciga" },
-  { id: "10", name: "Pinalact" },
-  { id: "11", name: "Aquileo" },
-  { id: "12", name: "Sopo" },
-  { id: "13", name: "Ricolacteos" },
-  { id: "14", name: "Fasalact" },
-  { id: "15", name: "Avella" },
-  { id: "16", name: "Choconta" },
-  { id: "17", name: "Asolesam" },
-  { id: "18", name: "Caleras" },
+export const rutasLOCAL = [
+  { id: "1", nombre: "Porvenir" },
+  { id: "2", nombre: "San Carlos" },
+  { id: "3", nombre: "Rosal" },
+  { id: "4", nombre: "San Jorge" },
+  { id: "5", nombre: "San Marcos" },
+  { id: "6", nombre: "Alfarero" },
+  { id: "7", nombre: "Rafa SAS" },
+  { id: "8", nombre: "Choachi" },
+  { id: "9", nombre: "Almeciga" },
+  { id: "10", nombre: "Pinalact" },
+  { id: "11", nombre: "Aquileo" },
+  { id: "12", nombre: "Sopo" },
+  { id: "13", nombre: "Ricolacteos" },
+  { id: "14", nombre: "Fasalact" },
+  { id: "15", nombre: "Avella" },
+  { id: "16", nombre: "Choconta" },
+  { id: "17", nombre: "Asolesam" },
+  { id: "18", nombre: "Caleras" },
 ];
 
-export const conductores = [
-  { id: "5", nombre: "Adrian", placa: "WGZ149", ruta: "1", rutas: "porvenir" },
+export const conductoresLOCAL = [
+  {
+    id: "5",
+    nombre: "Adrian----",
+    placa: "WGZ149",
+    ruta: "1",
+    rutas: "porvenir",
+  },
   { id: "6", nombre: "Edgar", placa: "WGZ149", ruta: "2", rutas: "san carlos" },
   {
     id: "7",
@@ -148,7 +154,7 @@ export const conductores = [
 ];
 
 export const usuariosLOCAL = [
-  { id: "5", usuario: "adrian1", password: "adrian0000", tipo: 1 },
+  { id: "5", usuario: "adrian", password: "adrian0000", tipo: 1 },
   { id: "6", usuario: "edgar", password: "edgar0000", tipo: 1 },
   { id: "7", usuario: "aldemar", password: "aldemar0000", tipo: 1 },
   { id: "8", usuario: "wilson", password: "wilson0000", tipo: 1 },
